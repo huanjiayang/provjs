@@ -45,7 +45,7 @@ function provjs(json){
 	                                "agent",
 			                        "entity",
 			                        "note"];
-	this._provdmterms["relation"] = ["Used",
+	this._provdmterms["relation"] = ["used",
 		                             "actedOnBehalfOf",
 		                             "alternateOf",
 		                             "hasAnnotation",
@@ -98,7 +98,7 @@ function processJSON(){
 		if (key=="account"){
 			for (var account in this.json.account){
 //				if ($.inArray(account,this._visitedrecord) == -1)
-				if(this._visitedrecord.hasItem(account))
+				if(this._visitedrecord.hasItem(account)==false)
 				{
 					this._visitedrecord.push(account);
 					var accURI = this.resolveQname(account);
@@ -178,7 +178,7 @@ function isPROVArray(obj){
 function _parseQueryArgument(argument){
 	var parseresult = { "identifier" : null,
 						"type" : null,
-						"account" : "default",
+						"account" : null,
 						"cstrrlat" : [],
 						"cstrattr" : []};
 
@@ -231,9 +231,23 @@ function provjsQuery(argument){
 function _queryContainer(querypara){
 	var rtlist = [];
 	this._queriedrecord = [];
-	rtlist = this._queryByType(this.container,querypara.type);
-/*	rtlist = this._limitByIdentifier(querypara.identifier);
-	for (var i=0;i<querypara.cstrrlat.length;i++){
+	if(querypara.type==null || querypara.type=="record")
+		for(var i=0;i<this._provdmterms["record"].length;i++)
+			rtlist = rtlist.concat(this._queryByType(this.container,this._provdmterms["record"][i],querypara.account));
+	else if(querypara.type == "relation")
+		for(var i=0;i<this._provdmterms["relation"].length;i++)
+			rtlist = rtlist.concat(this._queryByType(this.container,this._provdmterms["relation"][i],querypara.account));
+	else if(querypara.type == "element"){
+		for(var i=0;i<this._provdmterms["element"].length;i++){
+			rtlist = rtlist.concat(this._queryByType(this.container,this._provdmterms["element"][i],querypara.account));
+			}
+		}
+	else
+		rtlist = this._queryByType(this.container,querypara.type);
+	
+	if(querypara.identifier!=null)
+		rtlist = this._limitByIdentifier(rtlist,querypara.identifier);
+/*	for (var i=0;i<querypara.cstrrlat.length;i++){
 		rtlist = this._limitByCstrRlat(rtlist);
 	}
 	for (var i=0;i<querypara.cstrattr.length;i++){
@@ -243,25 +257,46 @@ function _queryContainer(querypara){
 	return rtlist;
 }
 
-function _queryByType(container,type){
+function _queryByType(container,type,account){
 	var rtlist = [];
-	if(typeof container[type] != "undefined"){
-		for(var id in container[type]){
-			var item = {};
-			item[id] = container[type][id];
-			rtlist.push(item);
+	test = container;
+	if(account==null){
+		if(typeof container[type] != "undefined"){
+			for(var id in container[type]){
+				var item = {};
+				item[id] = container[type][id];
+				rtlist.push(item);
+			}
 		}
+		if(typeof container["account"] != "undefined")
+			for(var acc in container["account"])
+				rtlist = rtlist.concat(this._queryByType(container["account"][acc],type,null));
 	}
-	if(typeof container["account"] != "undefined"){
-		for(var acc in container["account"]){
-			rtlist.concat(this._queryByType(container["account"][acc],type));
+	else{
+		if(typeof container["account"] != "undefined"){
+			for(var acc in container["account"]){
+				if(acc==account){
+					rtlist = rtlist.concat(this._queryByType(container["account"][acc],type,null));
+				}
+				else{
+					rtlist = rtlist.concat(this._queryByType(container["account"][acc],type,account));
+				}
+			}
 		}
 	}
 	return rtlist;
 }
 
-function _limitByIdentifier(){
-	
+function _limitByIdentifier(candidates,identifier){
+	var rtlist = [];
+	for(var i=0;i<candidates.length;i++){
+		for(var id in candidates){
+			if(id==identifier){
+				rtlist.push(candidates[i]);
+			}
+		}
+	}
+	return rtlist;
 }
 
 function _limitByCstrRlat(){
