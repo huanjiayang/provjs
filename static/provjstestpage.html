@@ -18,10 +18,9 @@
 					
 //					myjson.q(" entity << $>>wasGeneratedBy>>#a0 << account#acc0 ");
 					
-					result =myjson.q([" element ",
-							          " $>>wasGeneratedBy>>#a0 ",
-							          " account#acc0 ",
-							          " fct>>create "]);
+					result =myjson.q([" relation ",
+							          " $ >> wasGeneratedBy >> #a0 ",
+							          " fct >> create "]);
 					
 				},
 				failure: function(){alert('something went wrong...')}

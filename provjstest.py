@@ -68,7 +68,7 @@ def createPROV():
     
     acc0.add_entity(ex['e2'])
     
-    en = examplegraph.add_entity('en',account=acc0)
+    en = examplegraph.add_entity('en',attributes={"enattr":"envalue"},account=acc0)
     
     a1 = Activity("a1")
     examplegraph.add(a1)

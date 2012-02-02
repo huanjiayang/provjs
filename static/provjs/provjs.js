@@ -118,6 +118,7 @@ function processJSON(){
 					var recordURI = this.resolveQname(record);
 					if(typeof container[key] == "undefined")container[key]={};
 					container[key][recordURI]={};
+					container[key][recordURI]["RESERVED_provjstype"] = key;
 					for (var attr in this.json[key][record]){
 						var attrURI = this.resolveQname(attr);
 						// test code
@@ -129,7 +130,6 @@ function processJSON(){
 						$('#test').html(testmsg);
 						//end test code
 						container[key][recordURI][attrURI]=value;
-						container[key][recordURI]["RESERVED_provjstype"] = key;
 					}
 				}
 			}
@@ -190,6 +190,9 @@ function _parseQueryArgument(argument){
 	for(var i=0;i<arglist.length;i++){
 		if(arglist[i].indexOf(">>") >= 0){
 			var cstr = arglist[i].split(">>");
+			for(var j=0;j<cstr.length;j++){
+				cstr[j]=cstr[j].removeSurroundingSpace();		
+			}
 			if (cstr.length == 3){
 				var cstrrlat = {};
 				cstrrlat["subject"] = cstr[0];
@@ -243,17 +246,17 @@ function _queryContainer(querypara){
 			}
 		}
 	else
-		rtlist = this._queryByType(this.container,querypara.type);
+		rtlist = this._queryByType(this.container,querypara.type,querypara.account);
 	
 	if(querypara.identifier!=null)
 		rtlist = this._limitByIdentifier(rtlist,querypara.identifier);
+
 /*	for (var i=0;i<querypara.cstrrlat.length;i++){
-		rtlist = this._limitByCstrRlat(rtlist);
+		rtlist = this._limitByCstrRlat(rtlist,querypara.cstrrlat[i],querypara.account);
+	}	*/
+	for (var j=0;j<querypara.cstrattr.length;j++){
+		rtlist = this._limitByCstrAttr(rtlist,querypara.cstrattr[j]);
 	}
-	for (var i=0;i<querypara.cstrattr.length;i++){
-		rtlist = this._limitByCstrAttr(rtlist);
-	}
-	*/
 	return rtlist;
 }
 
@@ -299,12 +302,26 @@ function _limitByIdentifier(candidates,identifier){
 	return rtlist;
 }
 
-function _limitByCstrRlat(){
+function _limitByCstrRlat(candidates,cstrrlat,account){
 	
 }
 
-function _limitByCstrAttr(){
-	
+function _limitByCstrAttr(candidates,cstrattr){
+	var rtlist = [];
+	for(var i=0;i<candidates.length;i++){
+		for(var id in candidates[i]){
+			for (var attr in candidates[i][id]){
+				if(attr == cstrattr.attribute){
+					for(var k=0;k<candidates[i][id][attr].length;k++){
+						if(candidates[i][id][attr][k]== cstrattr.value){
+							rtlist.push(candidates[i]);
+						}
+					}
+				}
+			}
+		}
+	}
+	return rtlist;
 }
 
 String.prototype.startsWith = function (str){
