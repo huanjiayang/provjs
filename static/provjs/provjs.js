@@ -91,6 +91,7 @@ function provjs(json){
 	this.container = this.processJSON();
 	
 	this._parseQueryArgument = _parseQueryArgument;
+	this._matchRelation = _matchRelation;
 	this._queryByType = _queryByType;
 	this._limitByIdentifier = _limitByIdentifier;
 	this._limitByCstrRlat = _limitByCstrRlat;
@@ -214,6 +215,9 @@ function _parseQueryArgument(argument){
 			}
 			if (cstr.length == 3){
 				var cstrrlat = {};
+				for(var z=0;z<3;z++)
+					if(cstr[z].startsWith("#"))
+						cstr[z] = cstr[z].substring(1);
 				cstrrlat["provattr1"] = cstr[0];
 				cstrrlat["relation"]=cstr[1];
 				cstrrlat["provattr2"]=cstr[2];
@@ -270,9 +274,10 @@ function _queryContainer(querypara){
 	if(querypara.identifier!=null)
 		rtlist = this._limitByIdentifier(rtlist,querypara.identifier);
 
-/*	for (var i=0;i<querypara.cstrrlat.length;i++){
+	for (var i=0;i<querypara.cstrrlat.length;i++){
 		rtlist = this._limitByCstrRlat(rtlist,querypara.cstrrlat[i],querypara.account);
-	}	*/
+	}
+		
 	for (var j=0;j<querypara.cstrattr.length;j++){
 		rtlist = this._limitByCstrAttr(rtlist,querypara.cstrattr[j]);
 	}
@@ -322,11 +327,45 @@ function _limitByIdentifier(candidates,identifier){
 }
 
 function _limitByCstrRlat(candidates,cstrrlat,account){
+	var rtlist = [];
+	var rlatlist = this._queryByType(this.container, "relation", account);
 	for(var i=0;i<candidates.length;i++){
-		for(var id in candidates)
-		for(var j=0;j<3;j++);
-//			if(cstrrlat)cstrrlat[j]
+		for(var id in candidates[i]){
+			var cstr = [];
+			var insertposition = -1;
+			for(var j=0;j<3;j++){
+				if(cstrrlat[j]=="$"){
+					cstr[j]=id;
+					insertposition = j;
+				}
+				else cstr[j]=cstrrlat[j];
+			}
+			if(insertposition != -1){
+				if(insertposition!=1){
+					if(this._provdmterms["relation"].hasItem(cstr[1])){
+						var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
+						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+						if (matchlist.length>0) rtlist.push(candidates[i]);
+					}
+					else if(cstr[1]=="**"){
+						for(var r=0;r<this._provdmterms["relation"].length;r++){
+							cstr[1] = this._provdmterms["relation"][r];
+							var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
+							matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+							if (matchlist.length>0) rtlist.push(candidates[i]);
+						}
+					}
+				}
+				else {
+//					var matchlist = this._limitByIdentifier(rlatlist,cstr[1])
+//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
+//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+//					if (matchlist.length>0) rtlist.push(candidates[i]);
+				}
+			}
+		}
 	}
+	return rtlist;
 }
 
 function _limitByCstrAttr(candidates,cstrattr){
@@ -339,12 +378,19 @@ function _limitByCstrAttr(candidates,cstrattr){
 						if(candidates[i][id][attr][k]== cstrattr.value){
 							rtlist.push(candidates[i]);
 						}
+						else if(cstrattr.value == "**"){
+							rtlist.push(candidates[i]);
+						}
 					}
 				}
 			}
 		}
 	}
 	return rtlist;
+}
+
+function _matchRelation(cstr,relation){
+	
 }
 
 String.prototype.startsWith = function (str){
