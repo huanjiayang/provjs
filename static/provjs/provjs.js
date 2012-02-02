@@ -96,7 +96,7 @@ function processJSON(){
 					var accURI = this.resolveQname(account);
 					if(typeof container["account"] == "undefined")
 						container["account"]={};
-					accJSON = new provjs(this.json.account[account]);
+					var accJSON = new provjs(this.json.account[account]);
 					accJSON.nsdict = this.nsdict;
 					accJSON.container = accJSON.processJSON();
 					container["account"][accURI] = accJSON.container;
@@ -168,28 +168,34 @@ function isPROVArray(obj){
 }
 
 function _parseQueryArgument(argument){
-	var parseresult = {};
-	if(argument.indexOf("<<") != -1){
-		parseresult["cstrdirection"] = object;
-		parseresult["cstrtype"] = argument.split("<<")[1];
-		parseresult["recordpara"] = argument.split("<<")[0];
+	var parseresult = { "identifier" : null,
+						"type" : null,
+						"account" : "default",
+						"cstrrlat" : []};
+	var arglist = argument.split("<<");
+	for(var i=0;i<arglist.length;i++){
+		arglist[i]=arglist[i].removeSurroundingSpace();		
 	}
-	else if(argument.indexOf(">>") != -1){
-		parseresult["cstrdirection"] = subject;
-		parseresult["cstrtype"] = argument.split(">>")[1];
-		parseresult["recordpara"] = argument.split(">>")[0];
-	}
-	else{
-		parseresult["recordpara"] = argument;
-	}
-	if(parseresult["recordpara"].startsWith("#")){
-		parseresult["recordid"] = parseresult["recordpara"].substring(1);
-	}
-	else if (parseresult["recordpara"].startsWith(".")){
-		parseresult["recordtype"] = parseresult["recordpara"].substring(1);
-	}
-	else{
-		parseresult["recordtype"] = parseresult["recordpara"];
+	for(var i=0;i<arglist.length;i++){
+		if(arglist[i].indexOf(">>") >= 0){
+			var cstr = arglist[i].split(">>");
+			if (cstr.length == 3){
+				var cstrrlat = {};
+				cstrrlat["object"]=cstr[2];
+				cstrrlat["relation"]=cstr[1];
+				cstrrlat["subject"] = cstr[0];
+				parseresult["cstrrlat"].push(cstrrlat);
+			}
+		}
+		else if(arglist[i].startsWith("account#")){
+			parseresult["account"]=arglist[i].split("account#")[1];
+		}
+		else if(arglist[i].startsWith("#")){
+			parseresult["identifier"]=arglist[i];
+		}
+		else{
+			parseresult["type"] = arglist[i];
+		}
 	}
 	return parseresult;
 }
@@ -200,8 +206,9 @@ function provjsQuery(argument){
 	if(argument==null) alert("No parametre given for query");
 	else {// parse argument here.
 //		alert(argument);
-		var querypara = this._parseQueryArgument(argument);
+		querypara = this._parseQueryArgument(argument);
 //		alert(JSON.stringify(querypara));
+//		myjson.q("entity << $>>wasGeneratedBy>>#a0 << account>>#acc0")
 		
 		
 	}
@@ -209,4 +216,26 @@ function provjsQuery(argument){
 
 String.prototype.startsWith = function (str){
 	return this.indexOf(str) == 0;
+};
+
+String.prototype.removeSurroundingSpace = function (){
+	var rt = this.substring(0);
+	if (rt.startsWith(" ")) {
+		rt=rt.substring(1);
+	}
+	else if (rt[rt.length-1]==" ") {
+		rt=rt.substring(0,(rt.length)-1);
+	}
+	if (rt.startsWith(" ") || (rt[rt.length-1]==" "))	{
+		rt=rt.removeSurroundingSpace();
+	}
+	return rt;
+};
+
+Array.prototype.hasItem = function (item){
+	var rt = false;
+	for(var i=0;i<this.length;i++)
+		if (this[i]==item)
+			rt = true;
+	return rt;
 };
