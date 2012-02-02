@@ -28,11 +28,10 @@ function fromJSONtoHTML(provjson)
 function PROVLiteral(value,type){
 	this.value = value;
 	this.type = type;
-	this.equals = equals;
 }
 
-function equals(x){
-	if ( x === this ) return true;
+function PROVLiteral_equals(x,y){
+	if ( x === y ) return true;
 	else return ((x.value == this.value)&&(x.type==this.type));
 }
 
@@ -40,6 +39,7 @@ function equals(x){
 function provjs(json){
 	this.json = json;
 	this._visitedrecord = [];
+	this._queriedrecord = [];
 	this._provdmterms = {};
 	this._provdmterms["element"] = ["activity",
 	                                "agent",
@@ -73,6 +73,11 @@ function provjs(json){
 	this.container = this.processJSON();
 	
 	this._parseQueryArgument = _parseQueryArgument;
+	this._queryByType = _queryByType;
+	this._limitByIdentifier = _limitByIdentifier;
+	this._limitByCstrRlat = _limitByCstrRlat;
+	this._limitByCstrAttr = _limitByCstrAttr;
+	this._queryContainer = _queryContainer;
 	this.q = provjsQuery;
 }
 
@@ -87,11 +92,14 @@ function getNamespaceDict(){
 
 function processJSON(){
 	var container = {};
-	testmsg = "";
+	var testmsg = "";
+	this._visitedrecord = [];
 	for (var key in this.json) {
 		if (key=="account"){
 			for (var account in this.json.account){
-				if ($.inArray(account,this._visitedrecord) == -1){
+//				if ($.inArray(account,this._visitedrecord) == -1)
+				if(this._visitedrecord.hasItem(account))
+				{
 					this._visitedrecord.push(account);
 					var accURI = this.resolveQname(account);
 					if(typeof container["account"] == "undefined")
@@ -137,7 +145,7 @@ function processJSON(){
 
 function resolveQname(qname){
 	var URI = qname;
-	
+	// currently not resolving qname
 	return URI;
 }
 
@@ -171,8 +179,11 @@ function _parseQueryArgument(argument){
 	var parseresult = { "identifier" : null,
 						"type" : null,
 						"account" : "default",
-						"cstrrlat" : []};
-	var arglist = argument.split("<<");
+						"cstrrlat" : [],
+						"cstrattr" : []};
+
+//    var arglist = argument.split("<<");
+	var arglist = argument;
 	for(var i=0;i<arglist.length;i++){
 		arglist[i]=arglist[i].removeSurroundingSpace();		
 	}
@@ -181,10 +192,16 @@ function _parseQueryArgument(argument){
 			var cstr = arglist[i].split(">>");
 			if (cstr.length == 3){
 				var cstrrlat = {};
-				cstrrlat["object"]=cstr[2];
-				cstrrlat["relation"]=cstr[1];
 				cstrrlat["subject"] = cstr[0];
+				cstrrlat["relation"]=cstr[1];
+				cstrrlat["object"]=cstr[2];
 				parseresult["cstrrlat"].push(cstrrlat);
+			}
+			else if (cstr.length == 2){
+				var cstrattr = {};
+				cstrattr["attribute"] = cstr[0];
+				cstrattr["value"]=cstr[1];
+				parseresult["cstrattr"].push(cstrattr);
 			}
 		}
 		else if(arglist[i].startsWith("account#")){
@@ -205,13 +222,54 @@ function provjsQuery(argument){
 	if(typeof argument == "undefined")argument=null;
 	if(argument==null) alert("No parametre given for query");
 	else {// parse argument here.
-//		alert(argument);
 		querypara = this._parseQueryArgument(argument);
-//		alert(JSON.stringify(querypara));
-//		myjson.q("entity << $>>wasGeneratedBy>>#a0 << account>>#acc0")
-		
-		
+		rtlist = this._queryContainer(querypara);
 	}
+	return rtlist;
+}
+
+function _queryContainer(querypara){
+	var rtlist = [];
+	this._queriedrecord = [];
+	rtlist = this._queryByType(this.container,querypara.type);
+/*	rtlist = this._limitByIdentifier(querypara.identifier);
+	for (var i=0;i<querypara.cstrrlat.length;i++){
+		rtlist = this._limitByCstrRlat(rtlist);
+	}
+	for (var i=0;i<querypara.cstrattr.length;i++){
+		rtlist = this._limitByCstrAttr(rtlist);
+	}
+	*/
+	return rtlist;
+}
+
+function _queryByType(container,type){
+	var rtlist = [];
+	if(typeof container[type] != "undefined"){
+		for(var id in container[type]){
+			var item = {};
+			item[id] = container[type][id];
+			rtlist.push(item);
+		}
+	}
+	if(typeof container["account"] != "undefined"){
+		for(var acc in container["account"]){
+			rtlist.concat(this._queryByType(container["account"][acc],type));
+		}
+	}
+	return rtlist;
+}
+
+function _limitByIdentifier(){
+	
+}
+
+function _limitByCstrRlat(){
+	
+}
+
+function _limitByCstrAttr(){
+	
 }
 
 String.prototype.startsWith = function (str){
