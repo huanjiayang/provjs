@@ -63,6 +63,24 @@ function provjs(json){
 		                             "wasSummaryOf",
 		                             "hadOriginalSource"];
 	this._provdmterms["record"] = ["account"].concat(this._provdmterms["element"],this._provdmterms["relation"]);
+	
+	this._provattributes = {"used" : {"provattr1":"prov:activity","provattr2":"prov:entity"},
+				            "actedOnBehalfOf" : {"provattr1":"prov:subordinate","provattr2":"prov:responsible"},
+				            "alternateOf" : {"provattr1":"prov:subject","provattr2":"prov:alternate"},
+				            "hasAnnotation" : {"provattr1":"prov:record","provattr2":"prov:note"},
+				            "specializationOf" : {"provattr1":"prov:subject","provattr2":"prov:specialization"},
+				            "wasAssociatedWith" : {"provattr1":"prov:activity","provattr2":"prov:agent"},
+				            "wasDerivedFrom" : {"provattr1":"prov:generatedentity","provattr2":"prov:usedentity"},
+				            "wasEndedBy" : {"provattr1":"prov:activity","provattr2":"prov:agent"},
+				            "wasGeneratedBy" : {"provattr1":"prov:entity","provattr2":"prov:activity"},
+				            "wasStartedBy" : {"provattr1":"prov:activity","provattr2":"prov:agent"},
+				            "tracedTo" : {"provattr1":"prov:entity","provattr2":"prov:ancestor"},
+				            "wasInformedBy" : {"provattr1":"prov:informed","provattr2":"prov:informant"},
+				            "wasRevisionOf" : {"provattr1":"prov:newer","provattr2":"prov:older"},
+				            "wasAttributedTo" : {"provattr1":"prov:entity","provattr2":"prov:agent"},
+				            "wasQuotedFrom" : {"provattr1":"prov:quote","provattr2":"prov:quoted"},
+				            "wasSummaryOf" : {"provattr1":"prov:summarizedEntity","provattr2":"prov:fullEntity"},
+				            "hadOriginalSource" : {"provattr1":"prov:entity","provattr2":"prov:source"}}
 
 	this.getNamespaceDict = getNamespaceDict;
 	this.processJSON = processJSON;
@@ -150,6 +168,7 @@ function resolveQname(qname){
 }
 
 function processValue(value){
+	//TODO: This needs thoughts... currently difficult to express PROVLiteral in query.
 	var rt = [];
 	if (isPROVArray(value)){
 		if (value[1]=="prov:array"){
@@ -195,9 +214,9 @@ function _parseQueryArgument(argument){
 			}
 			if (cstr.length == 3){
 				var cstrrlat = {};
-				cstrrlat["subject"] = cstr[0];
+				cstrrlat["provattr1"] = cstr[0];
 				cstrrlat["relation"]=cstr[1];
-				cstrrlat["object"]=cstr[2];
+				cstrrlat["provattr2"]=cstr[2];
 				parseresult["cstrrlat"].push(cstrrlat);
 			}
 			else if (cstr.length == 2){
@@ -211,7 +230,7 @@ function _parseQueryArgument(argument){
 			parseresult["account"]=arglist[i].split("account#")[1];
 		}
 		else if(arglist[i].startsWith("#")){
-			parseresult["identifier"]=arglist[i];
+			parseresult["identifier"]=arglist[i].substring(1);
 		}
 		else{
 			parseresult["type"] = arglist[i];
@@ -293,7 +312,7 @@ function _queryByType(container,type,account){
 function _limitByIdentifier(candidates,identifier){
 	var rtlist = [];
 	for(var i=0;i<candidates.length;i++){
-		for(var id in candidates){
+		for(var id in candidates[i]){
 			if(id==identifier){
 				rtlist.push(candidates[i]);
 			}
@@ -303,7 +322,11 @@ function _limitByIdentifier(candidates,identifier){
 }
 
 function _limitByCstrRlat(candidates,cstrrlat,account){
-	
+	for(var i=0;i<candidates.length;i++){
+		for(var id in candidates)
+		for(var j=0;j<3;j++);
+//			if(cstrrlat)cstrrlat[j]
+	}
 }
 
 function _limitByCstrAttr(candidates,cstrattr){
