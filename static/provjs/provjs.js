@@ -328,35 +328,44 @@ function _limitByIdentifier(candidates,identifier){
 
 function _limitByCstrRlat(candidates,cstrrlat,account){
 	var rtlist = [];
-	var rlatlist = this._queryByType(this.container, "relation", account);
+	var rlatlist = [];
+	for(var i=0;i<this._provdmterms["relation"].length;i++)
+		rlatlist = rlatlist.concat(this._queryByType(this.container,this._provdmterms["relation"][i],account));
+
 	for(var i=0;i<candidates.length;i++){
 		for(var id in candidates[i]){
-			var cstr = [];
+			var cstr = {};
 			var insertposition = -1;
-			for(var j=0;j<3;j++){
-				if(cstrrlat[j]=="$"){
-					cstr[j]=id;
-					insertposition = j;
+			for(var key in cstrrlat){
+				if (cstrrlat[key]=="$"){
+					cstr[key]=id;
+					insertposition = key;
 				}
-				else cstr[j]=cstrrlat[j];
+				else
+					cstr[key]=cstrrlat[key];
 			}
 			if(insertposition != -1){
-				if(insertposition!=1){
-					if(this._provdmterms["relation"].hasItem(cstr[1])){
-						var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
-						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+				if(insertposition!="relation"){
+					if(this._provdmterms["relation"].hasItem(cstr["relation"])){
+						var matchlist = this._queryByType(this.container,cstr["relation"],account)
+						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
+						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
 						if (matchlist.length>0) rtlist.push(candidates[i]);
 					}
-					else if(cstr[1]=="**"){
+					else if(cstr["relation"]=="**"){
 						for(var r=0;r<this._provdmterms["relation"].length;r++){
-							cstr[1] = this._provdmterms["relation"][r];
-							var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
-							matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+							cstr["relation"] = this._provdmterms["relation"][r];
+							var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
+							matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
 							if (matchlist.length>0) rtlist.push(candidates[i]);
 						}
 					}
 				}
 				else {
+					var rlatname = candidates[i][id].RESERVED_provjstype;
+					if((candidates[i][id][this._provattributes[rlatname].provattr1] == cstr["provattr1"])||(cstr["provattr1"]=="**"))
+						if((candidates[i][id][this._provattributes[rlatname].provattr2] == cstr["provattr2"])||(cstr["provattr2"]=="**"))
+							rtlist.push(candidates[i]);
 //					var matchlist = this._limitByIdentifier(rlatlist,cstr[1])
 //					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
 //					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
