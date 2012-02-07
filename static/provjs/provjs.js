@@ -28,6 +28,14 @@ function fromJSONtoHTML(provjson)
 function PROVLiteral(value,type){
 	this.value = value;
 	this.type = type;
+	this.toHTML = toHTML;
+}
+
+function toHTML(){
+	var html = "";
+	html += this.value.toString();
+	html += "   ( " + this.type.toString() + " )";
+	return html;
 }
 
 function PROVLiteral_equals(x,y){
