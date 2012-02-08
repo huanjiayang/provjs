@@ -151,7 +151,8 @@ function processJSON(){
 						//test code
 						testmsg = testmsg + "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+ value.toString();
 						var testdiv = document.getElementById("test"); 
-						testdiv.innerHTML = testmsg;
+						if(testdiv != null)
+							testdiv.innerHTML = testmsg;
 //						$('#test').html(testmsg);
 						//end test code
 						container[key][recordURI][attrURI]=value;
