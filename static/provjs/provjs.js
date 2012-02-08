@@ -150,7 +150,9 @@ function processJSON(){
 						var value = this.processValue(this.json[key][record][attr]);
 						//test code
 						testmsg = testmsg + "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+ value.toString();
-						$('#test').html(testmsg);
+						var testdiv = document.getElementById("test"); 
+						testdiv.innerHTML = testmsg;
+//						$('#test').html(testmsg);
 						//end test code
 						container[key][recordURI][attrURI]=value;
 					}
