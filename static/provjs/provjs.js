@@ -38,11 +38,6 @@ function toHTML(){
 	return html;
 }
 
-function PROVLiteral_equals(x,y){
-	if ( x === y ) return true;
-	else return ((x.value == this.value)&&(x.type==this.type));
-}
-
 
 function provjs(json){
 	this.json = json;
@@ -98,6 +93,7 @@ function provjs(json){
 	this.nsdict = this.getNamespaceDict();
 	this.container = this.processJSON();
 	
+	this._compareValue = compareValue;
 	this._parseQueryArgument = _parseQueryArgument;
 	this._matchRelation = _matchRelation;
 	this._queryByType = _queryByType;
@@ -203,7 +199,7 @@ function isPROVArray(obj){
 	return rt;
 }
 
-function _parseQueryArgument(argument){
+function _parseQueryArgument(argument,binding){
 	var parseresult = { "identifier" : null,
 						"type" : null,
 						"account" : null,
@@ -233,8 +229,16 @@ function _parseQueryArgument(argument){
 			}
 			else if (cstr.length == 2){
 				var cstrattr = {};
-				cstrattr["attribute"] = cstr[0];
-				cstrattr["value"]=cstr[1];
+				if(cstr[1].startsWith("?")){
+					if(typeof binding[cstr[1].substring(1)] != "undefined"){
+						cstrattr["attribute"] = cstr[0];
+						cstrattr["value"]=binding[cstr[1].substring(1)];
+					}
+				}
+				else{
+					cstrattr["attribute"] = cstr[0];
+					cstrattr["value"]=cstr[1];
+				}
 				parseresult["cstrattr"].push(cstrattr);
 			}
 		}
@@ -251,12 +255,12 @@ function _parseQueryArgument(argument){
 	return parseresult;
 }
 
-function provjsQuery(argument){
+function provjsQuery(argument,binding){
 	var rtlist = [];
 	if(typeof argument == "undefined")argument=null;
 	if(argument==null) alert("No parametre given for query");
 	else {// parse argument here.
-		querypara = this._parseQueryArgument(argument);
+		querypara = this._parseQueryArgument(argument,binding);
 		rtlist = this._queryContainer(querypara);
 	}
 	return rtlist;
@@ -392,7 +396,8 @@ function _limitByCstrAttr(candidates,cstrattr){
 			for (var attr in candidates[i][id]){
 				if(attr == cstrattr.attribute){
 					for(var k=0;k<candidates[i][id][attr].length;k++){
-						if(candidates[i][id][attr][k]== cstrattr.value){
+//						if(candidates[i][id][attr][k]== cstrattr.value)
+						if(this._compareValue(candidates[i][id][attr][k], cstrattr.value)){
 							rtlist.push(candidates[i]);
 						}
 						else if(cstrattr.value == "**"){
@@ -404,6 +409,19 @@ function _limitByCstrAttr(candidates,cstrattr){
 		}
 	}
 	return rtlist;
+}
+
+function compareValue(x,y){
+	var rt = false;
+	testx = x;
+	testy = y;
+	if ( x === y ) rt = true;
+	else if(x==y) rt = true;
+	else if(typeof x.value != "undefined"){
+		if(typeof y.value != "undefined")
+		rt = ((x.value == y.value)&&(x.type==y.type));
+	}
+	return rt;
 }
 
 function _matchRelation(cstr,relation){
