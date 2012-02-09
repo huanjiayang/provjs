@@ -67,7 +67,7 @@ function provjs(json){
 		                             "hadOriginalSource"];
 	this._provdmterms["record"] = ["account"].concat(this._provdmterms["element"],this._provdmterms["relation"]);
 	
-	this._provattributes = {"used" : {"provattr1":"prov:activity","provattr2":"prov:entity"},
+	this.provattributes = {"used" : {"provattr1":"prov:activity","provattr2":"prov:entity"},
 				            "actedOnBehalfOf" : {"provattr1":"prov:subordinate","provattr2":"prov:responsible"},
 				            "alternateOf" : {"provattr1":"prov:subject","provattr2":"prov:alternate"},
 				            "hasAnnotation" : {"provattr1":"prov:record","provattr2":"prov:note"},
@@ -363,27 +363,27 @@ function _limitByCstrRlat(candidates,cstrrlat,account){
 				if(insertposition!="relation"){
 					if(this._provdmterms["relation"].hasItem(cstr["relation"])){
 						var matchlist = this._queryByType(this.container,cstr["relation"],account)
-						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
-						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
+						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this.provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
+						matchlist = this._limitByCstrAttr(matchlist, {"attribute":this.provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
 						if (matchlist.length>0) rtlist.push(candidates[i]);
 					}
 					else if(cstr["relation"]=="**"){
 						for(var r=0;r<this._provdmterms["relation"].length;r++){
 							cstr["relation"] = this._provdmterms["relation"][r];
-							var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this._provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
-							matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
+							var matchlist = this._limitByCstrAttr(rlatlist, {"attribute":this.provattributes[cstr["relation"]].provattr1,"value":cstr["provattr1"]});
+							matchlist = this._limitByCstrAttr(matchlist, {"attribute":this.provattributes[cstr["relation"]].provattr2,"value":cstr["provattr2"]});
 							if (matchlist.length>0) rtlist.push(candidates[i]);
 						}
 					}
 				}
 				else {
 					var rlatname = candidates[i][id].RESERVED_provjstype;
-					if((candidates[i][id][this._provattributes[rlatname].provattr1] == cstr["provattr1"])||(cstr["provattr1"]=="**"))
-						if((candidates[i][id][this._provattributes[rlatname].provattr2] == cstr["provattr2"])||(cstr["provattr2"]=="**"))
+					if((candidates[i][id][this.provattributes[rlatname].provattr1] == cstr["provattr1"])||(cstr["provattr1"]=="**"))
+						if((candidates[i][id][this.provattributes[rlatname].provattr2] == cstr["provattr2"])||(cstr["provattr2"]=="**"))
 							rtlist.push(candidates[i]);
 //					var matchlist = this._limitByIdentifier(rlatlist,cstr[1])
-//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr1,"value":cstr[0]});
-//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this._provattributes[cstr[1]].provattr2,"value":cstr[2]});
+//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this.provattributes[cstr[1]].provattr1,"value":cstr[0]});
+//					matchlist = this._limitByCstrAttr(matchlist, {"attribute":this.provattributes[cstr[1]].provattr2,"value":cstr[2]});
 //					if (matchlist.length>0) rtlist.push(candidates[i]);
 				}
 			}
