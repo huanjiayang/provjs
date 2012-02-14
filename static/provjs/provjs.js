@@ -176,12 +176,12 @@ function resolveQname(qname){
 }
 
 function processValue(value){
-	//TODO: This needs thoughts... currently difficult to express PROVLiteral in query.
-	var rt = [];
+	var rt = null;
 	if (isPROVArray(value)){
+		rt = [];
 		if (value[1]=="prov:array"){
 			for(var i=0;i<value[0].length;i++){
-				rt.push(this.processValue(value[0][i])[0]);
+				rt.push(this.processValue(value[0][i]));
 			}
 		}
 		else{
@@ -189,14 +189,14 @@ function processValue(value){
 		}
 	}
 	else{
-		rt.push(value);
+		rt = value;
 	}
 	return rt;
 }
 
 function isPROVArray(obj){
 	var rt = false;
-		if (obj.constructor.toString().indexOf("Array") != -1)
+		if (obj instanceof Array)
 			if(obj.length == 2)
 					rt = true;
 	return rt;
