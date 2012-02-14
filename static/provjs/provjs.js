@@ -76,7 +76,7 @@ function provjs(json){
 				            "wasDerivedFrom" : {"provattr1":"prov:generatedentity","provattr2":"prov:usedentity"},
 				            "wasEndedBy" : {"provattr1":"prov:activity","provattr2":"prov:agent"},
 				            "wasGeneratedBy" : {"provattr1":"prov:entity","provattr2":"prov:activity"},
-				            "wasStartedBy" : {"provattr1":"prov:activity","provattr2":"prov:agent"},
+				            "wasStartedBy" : {"provattr1":"prov:started","provattr2":"prov:starter"},
 				            "tracedTo" : {"provattr1":"prov:entity","provattr2":"prov:ancestor"},
 				            "wasInformedBy" : {"provattr1":"prov:informed","provattr2":"prov:informant"},
 				            "wasRevisionOf" : {"provattr1":"prov:newer","provattr2":"prov:older"},
@@ -398,15 +398,21 @@ function _limitByCstrAttr(candidates,cstrattr){
 		for(var id in candidates[i]){
 			for (var attr in candidates[i][id]){
 				if(attr == cstrattr.attribute){
-					for(var k=0;k<candidates[i][id][attr].length;k++){
-//						if(candidates[i][id][attr][k]== cstrattr.value)
-						if(this._compareValue(candidates[i][id][attr][k], cstrattr.value)){
-							rtlist.push(candidates[i]);
-						}
-						else if(cstrattr.value == "**"){
-							rtlist.push(candidates[i]);
+					if(candidates[i][id][attr] instanceof Array){
+						for(var k=0;k<candidates[i][id][attr].length;k++){
+	//						if(candidates[i][id][attr][k]== cstrattr.value)
+							if(this._compareValue(candidates[i][id][attr][k], cstrattr.value)){
+								rtlist.push(candidates[i]);
+							}
+							else if(cstrattr.value == "**"){
+								rtlist.push(candidates[i]);
+							}
 						}
 					}
+					else if(this._compareValue(candidates[i][id][attr], cstrattr.value)){
+							rtlist.push(candidates[i]);
+					}
+						
 				}
 			}
 		}
