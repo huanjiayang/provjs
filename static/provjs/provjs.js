@@ -246,7 +246,7 @@ function _parseQueryArgument(argument,binding){
 			}
 		}
 		else if(arglist[i].startsWith("account#")){
-			parseresult["account"]=arglist[i].split("account#")[1];
+			parseresult["account"]=arglist[i].substring(8);
 		}
 		else if(arglist[i].startsWith("#")){
 			parseresult["identifier"]=arglist[i].substring(1);
